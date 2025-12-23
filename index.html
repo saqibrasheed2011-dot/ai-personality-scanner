@@ -1,385 +1,761 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Footprint Scanner</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Digital Footprint Scanner</title>
+  <meta name="description" content="Digital Footprint Scanner — camera scan + simulated footprint report." />
+  <style>
+    :root{
+      --bg:#070A12;
+      --panel:rgba(255,255,255,.05);
+      --stroke:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.62);
+      --muted2:rgba(255,255,255,.40);
+      --a:#7C5CFF;
+      --b:#35D0FF;
+      --g:#2EE59D;
+      --w:#FFCC66;
+      --r:#FF6B6B;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
+      background:
+        radial-gradient(1200px 650px at 12% 12%, rgba(124,92,255,.22), transparent 60%),
+        radial-gradient(900px 520px at 88% 18%, rgba(53,208,255,.18), transparent 55%),
+        radial-gradient(900px 520px at 50% 95%, rgba(46,229,157,.10), transparent 60%),
+        var(--bg);
+    }
+    .wrap{
+      width:min(1100px,100%);
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:16px;
+    }
+    @media(max-width:900px){.wrap{grid-template-columns:1fr}}
+    .card{
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow: 0 30px 90px rgba(0,0,0,.45);
+    }
+    .top{
+      padding:16px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom:1px solid var(--stroke);
+      background: rgba(255,255,255,.02);
+    }
+    .brand{display:flex; align-items:center; gap:10px}
+    .logo{
+      width:34px;height:34px;border-radius:10px;
+      background: linear-gradient(135deg, var(--a), var(--b));
+      box-shadow: 0 18px 50px rgba(124,92,255,.22);
+      position:relative; overflow:hidden;
+    }
+    .logo:after{
+      content:"";
+      position:absolute; inset:-50%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+      transform: rotate(25deg);
+      animation: shine 3.8s linear infinite;
+    }
+    @keyframes shine{
+      0%{ transform:translateX(-45%) rotate(25deg);}
+      100%{ transform:translateX(45%) rotate(25deg);}
+    }
+    h1{margin:0;font-size:15px}
+    .sub{margin:0;color:var(--muted);font-size:12px}
+    .pill{
+      font-size:12px;
+      color:rgba(255,255,255,.86);
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.02);
+      padding:8px 10px;
+      border-radius:999px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:99px;background:var(--g);
+      box-shadow: 0 0 0 6px rgba(46,229,157,.12);
+      animation:pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.25);opacity:.75}}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+    .hero{
+      padding:18px 18px 12px;
+      border-bottom:1px solid var(--stroke);
+      background:
+        radial-gradient(700px 240px at 15% 0%, rgba(124,92,255,.22), transparent 60%),
+        radial-gradient(650px 240px at 95% 10%, rgba(53,208,255,.16), transparent 55%),
+        rgba(255,255,255,.01);
+    }
+    .hero h2{margin:0 0 8px;font-size:24px;letter-spacing:-.3px;line-height:1.15}
+    .hero p{margin:0;color:var(--muted);font-size:13px;line-height:1.6;max-width:68ch}
+    .notice{
+      margin-top:12px;
+      border:1px solid rgba(255,204,102,.25);
+      background: rgba(255,204,102,.07);
+      border-radius:14px;
+      padding:10px 12px;
+      color: rgba(255,255,255,.78);
+      font-size:12px; line-height:1.5;
+    }
+    .notice b{color:rgba(255,255,255,.92)}
+    .notice .tiny{color:rgba(255,255,255,.6)}
 
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
+    form{padding:16px 18px 20px}
+    label{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px}
+    input,select{
+      width:100%;
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.25);
+      color:var(--text);
+      border-radius:12px;
+      padding:12px;
+      outline:none;
+      font-size:14px;
+    }
+    input:focus,select:focus{border-color:rgba(124,92,255,.55); box-shadow:0 0 0 4px rgba(124,92,255,.18)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media(max-width:540px){.row{grid-template-columns:1fr}}
 
-        h1 {
-            text-align: center;
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 2em;
-        }
+    .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+    .btn{
+      border:none;
+      background: linear-gradient(135deg, var(--a), var(--b));
+      color:#07101f;
+      font-weight:900;
+      padding:12px 14px;
+      border-radius:12px;
+      cursor:pointer;
+      font-size:14px;
+      box-shadow:0 18px 55px rgba(124,92,255,.22);
+    }
+    .btn2{
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.02);
+      color:rgba(255,255,255,.88);
+      padding:12px 14px;
+      border-radius:12px;
+      cursor:pointer;
+      font-size:14px;
+    }
+    .btn:disabled,.btn2:disabled{opacity:.6;cursor:not-allowed}
+    .note{font-size:12px;color:var(--muted2);line-height:1.5}
 
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 0.9em;
-        }
+    /* Right panel (scanner) */
+    .scanner{min-height:620px; position:relative;}
+    .scanTop{
+      padding:14px 14px;
+      border-bottom:1px solid var(--stroke);
+      background: rgba(255,255,255,.02);
+      display:flex; align-items:center; justify-content:space-between;
+      font-size:12px; color:var(--muted);
+    }
+    .scanBody{padding:16px; height: calc(620px - 48px); display:flex; flex-direction:column; gap:12px;}
+    .cam{
+      border:1px solid var(--stroke);
+      border-radius:18px;
+      background:
+        radial-gradient(600px 240px at 50% 20%, rgba(53,208,255,.10), transparent 60%),
+        radial-gradient(600px 240px at 50% 85%, rgba(124,92,255,.12), transparent 60%),
+        rgba(0,0,0,.22);
+      position:relative;
+      overflow:hidden;
+      height:320px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    video{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      transform: scaleX(-1); /* mirror selfie */
+      display:none;
+    }
+    canvas{display:none}
+    .faceFrame{
+      position:absolute;
+      width:210px;
+      height:270px;
+      border:2px dashed rgba(255,255,255,.55);
+      border-radius: 50%;
+      box-shadow: 0 0 0 999px rgba(0,0,0,.18);
+      display:none;
+    }
+    .scanLine{
+      position:absolute;
+      left:-10%;
+      right:-10%;
+      height:56px;
+      top:-70px;
+      background: linear-gradient(180deg, transparent, rgba(53,208,255,.18), rgba(124,92,255,.28), transparent);
+      animation: sweep 2.1s ease-in-out infinite;
+      opacity:.9;
+      display:none;
+    }
+    @keyframes sweep{
+      0%{transform:translateY(-30px);opacity:0}
+      20%{opacity:.9}
+      50%{transform:translateY(360px);opacity:.9}
+      85%{opacity:.5}
+      100%{transform:translateY(420px);opacity:0}
+    }
+    .hud{
+      position:absolute; left:14px; right:14px; bottom:14px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      font-size:12px; color:var(--muted);
+    }
+    .bar{flex:1; height:8px; border-radius:999px; border:1px solid rgba(255,255,255,.10); overflow:hidden; background: rgba(255,255,255,.03)}
+    .bar i{display:block; height:100%; width:18%; background:linear-gradient(90deg,var(--a),var(--b)); border-radius:999px; animation: load 2.5s ease-in-out infinite;}
+    @keyframes load{0%{width:10%}50%{width:82%}100%{width:22%}}
 
-        .input-group {
-            margin-bottom: 20px;
-        }
+    .log{
+      border:1px solid var(--stroke);
+      border-radius:16px;
+      background: rgba(255,255,255,.02);
+      padding:12px;
+      height:160px;
+      overflow:auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size:12px;
+      color: rgba(255,255,255,.78);
+    }
+    .log b{color:rgba(255,255,255,.92)}
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-        }
+    .previewRow{
+      display:none;
+      gap:12px;
+      align-items:center;
+      border:1px solid var(--stroke);
+      border-radius:16px;
+      background: rgba(255,255,255,.02);
+      padding:12px;
+    }
+    .shot{
+      width:92px;height:92px;border-radius:14px;
+      border:1px solid rgba(255,255,255,.16);
+      object-fit:cover;
+      box-shadow: 0 12px 30px rgba(0,0,0,.28);
+    }
+    .ptext{font-size:12px;color:var(--muted);line-height:1.5}
+    .ptext b{color:rgba(255,255,255,.9)}
+    .result{display:none}
+    .report{
+      border:1px solid var(--stroke);
+      border-radius:16px;
+      background: rgba(255,255,255,.02);
+      padding:14px;
+    }
+    .title{font-size:16px;margin:0 0 8px}
+    .chips{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0}
+    .chip{
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.02);
+      color: rgba(255,255,255,.86);
+    }
+    .kpi{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px}
+    @media(max-width:540px){.kpi{grid-template-columns:1fr}}
+    .kpi .box{
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.18);
+      border-radius:14px;
+      padding:10px 12px;
+    }
+    .box .k{font-size:12px;color:var(--muted2)}
+    .box .v{font-size:14px;color:rgba(255,255,255,.88);margin-top:4px}
+    .section{margin-top:10px;color:rgba(255,255,255,.82);font-size:13px;line-height:1.6}
+    .links a{
+      color:rgba(255,255,255,.9);
+      text-decoration:none;
+      border-bottom:1px solid rgba(255,255,255,.22);
+    }
+    .links a:hover{border-bottom-color:rgba(255,255,255,.6)}
+    .danger{
+      margin-top:12px;
+      border:1px solid rgba(255,107,107,.22);
+      background: rgba(255,107,107,.08);
+      border-radius:14px;
+      padding:10px 12px;
+      color: rgba(255,255,255,.78);
+      font-size:12px; line-height:1.5;
+    }
 
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .scan-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .scan-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .scan-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .scanner-animation {
-            display: none;
-            margin: 30px 0;
-        }
-
-        .scanner-box {
-            border: 3px solid #667eea;
-            border-radius: 12px;
-            padding: 40px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .scan-line {
-            position: absolute;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #667eea, transparent);
-            animation: scan 2s linear infinite;
-        }
-
-        @keyframes scan {
-            0% { top: 0; }
-            100% { top: 100%; }
-        }
-
-        .scanner-text {
-            text-align: center;
-            color: #667eea;
-            font-weight: 600;
-            margin-top: 20px;
-        }
-
-        .results {
-            display: none;
-            margin-top: 30px;
-        }
-
-        .result-card {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-        }
-
-        .platform-name {
-            font-weight: 600;
-            color: #667eea;
-            margin-bottom: 8px;
-            font-size: 1.1em;
-        }
-
-        .result-content {
-            color: #555;
-            line-height: 1.6;
-        }
-
-        .result-link {
-            color: #667eea;
-            text-decoration: none;
-            word-break: break-all;
-        }
-
-        .result-link:hover {
-            text-decoration: underline;
-        }
-
-        .no-results {
-            text-align: center;
-            color: #999;
-            padding: 20px;
-        }
-
-        .loading {
-            text-align: center;
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: #e0e0e0;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            width: 0%;
-            transition: width 0.3s;
-        }
-    </style>
+    .toast{
+      position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
+      background: rgba(15,22,36,.95);
+      border:1px solid var(--stroke);
+      color: rgba(255,255,255,.9);
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:12px;
+      display:none;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔍 Digital Footprint Scanner</h1>
-        <p class="subtitle">Discover your online presence across the web</p>
+  <div class="wrap">
+    <!-- LEFT -->
+    <div class="card">
+      <div class="top">
+        <div class="brand">
+          <div class="logo"></div>
+          <div>
+            <h1>Digital Footprint Scanner</h1>
+            <p class="sub">Camera scan + simulated “public presence” report</p>
+          </div>
+        </div>
+        <div class="pill"><span class="dot"></span> Scanner Online</div>
+      </div>
 
-        <div class="input-group">
-            <label for="userName">Enter Your Full Name:</label>
-            <input type="text" id="userName" placeholder="e.g., John Smith">
+      <div class="hero">
+        <h2>Scan your face. Generate your “public footprint” report.</h2>
+        <p>
+          This demo captures a selfie <b>locally in your browser</b> and generates a simulated footprint report.
+          It does <b>not</b> scrape private data from LinkedIn/Facebook/Google.
+        </p>
+        <div class="notice">
+          <b>Works only on HTTPS</b> (GitHub Pages / Netlify). Camera won’t work on <span class="tiny">file://</span>.
+        </div>
+      </div>
+
+      <form id="form" autocomplete="off">
+        <div class="row">
+          <div>
+            <label for="fullName">Full name</label>
+            <input id="fullName" placeholder="e.g., Muhammad Ahmed" required />
+          </div>
+          <div>
+            <label for="location">Location (optional)</label>
+            <input id="location" placeholder="e.g., Karachi, PK" />
+          </div>
         </div>
 
-        <div class="input-group">
-            <label for="location">Location (Optional):</label>
-            <input type="text" id="location" placeholder="e.g., New York, USA">
-        </div>
+        <label for="vibe">Your vibe</label>
+        <select id="vibe" required>
+          <option value="" selected disabled>Select</option>
+          <option>Founder</option>
+          <option>Freelancer</option>
+          <option>Creator</option>
+          <option>Student</option>
+          <option>Builder</option>
+          <option>Chaotic (good)</option>
+        </select>
 
-        <button class="scan-btn" onclick="startScan()">🚀 Start Scanning</button>
+        <label for="line">One line about you</label>
+        <input id="line" placeholder="e.g., Calm until it’s time to win." required />
 
-        <div class="scanner-animation" id="scannerAnimation">
-            <div class="scanner-box">
-                <div class="scan-line"></div>
-                <div style="text-align: center; font-size: 3em;">👤</div>
-            </div>
-            <div class="scanner-text">Scanning digital footprint...</div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
+        <div class="actions">
+          <button class="btn" type="submit" id="startBtn">Start Scan</button>
+          <button class="btn2" type="button" id="resetBtn">Reset</button>
+          <div class="note">Tip: Use your real name for a more “realistic” report.</div>
         </div>
-
-        <div class="results" id="results">
-            <h2 style="color: #667eea; margin-bottom: 20px;">📊 Your Digital Footprint</h2>
-            <div id="resultsContainer"></div>
-        </div>
+      </form>
     </div>
 
-    <script>
-        async function startScan() {
-            const userName = document.getElementById('userName').value.trim();
-            const location = document.getElementById('location').value.trim();
+    <!-- RIGHT -->
+    <div class="card scanner">
+      <div class="scanTop">
+        <span>Scan Console</span>
+        <span id="status">Idle</span>
+      </div>
 
-            if (!userName) {
-                alert('Please enter your name to start scanning!');
-                return;
-            }
+      <div class="scanBody">
+        <!-- Camera box -->
+        <div class="cam" id="cam">
+          <video id="video" autoplay playsinline></video>
+          <canvas id="canvas"></canvas>
 
-            // Hide results and show scanner
-            document.getElementById('results').style.display = 'none';
-            document.getElementById('scannerAnimation').style.display = 'block';
-            document.querySelector('.scan-btn').disabled = true;
+          <div class="faceFrame" id="faceFrame"></div>
+          <div class="scanLine" id="scanLine"></div>
 
-            // Simulate scanning animation
-            let progress = 0;
-            const progressBar = document.getElementById('progressFill');
-            const progressInterval = setInterval(() => {
-                progress += 2;
-                progressBar.style.width = progress + '%';
-                if (progress >= 100) {
-                    clearInterval(progressInterval);
-                }
-            }, 50);
+          <div class="hud">
+            <span id="hudLabel">Waiting…</span>
+            <div class="bar"><i></i></div>
+          </div>
+        </div>
 
-            // Wait for animation effect
-            await new Promise(resolve => setTimeout(resolve, 2500));
+        <!-- Selfie preview -->
+        <div class="previewRow" id="previewRow">
+          <img id="shot" class="shot" alt="Captured selfie preview"/>
+          <div class="ptext">
+            <b>Identity snapshot captured.</b><br/>
+            Stored locally in this browser session only.
+          </div>
+        </div>
 
-            // Start searching
-            document.querySelector('.scanner-text').textContent = 'Searching across platforms...';
-            
-            const platforms = [
-                { name: 'LinkedIn', query: `${userName} LinkedIn ${location}`.trim() },
-                { name: 'Facebook', query: `${userName} Facebook ${location}`.trim() },
-                { name: 'Twitter/X', query: `${userName} Twitter OR X.com ${location}`.trim() },
-                { name: 'Instagram', query: `${userName} Instagram ${location}`.trim() },
-                { name: 'GitHub', query: `${userName} GitHub profile ${location}`.trim() },
-                { name: 'Professional Websites', query: `${userName} portfolio OR website ${location}`.trim() }
-            ];
+        <!-- Logs -->
+        <div class="log" id="log">
+          <div><b>&gt;</b> system: ready</div>
+          <div><b>&gt;</b> note: HTTPS required for camera access</div>
+        </div>
 
-            const results = [];
+        <!-- Results -->
+        <div class="result" id="result">
+          <div class="report">
+            <h3 class="title" id="rt">Report</h3>
+            <div class="chips" id="chips"></div>
 
-            for (let platform of platforms) {
-                try {
-                    const response = await fetch('https://api.anthropic.com/v1/messages', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            model: 'claude-sonnet-4-20250514',
-                            max_tokens: 1000,
-                            messages: [{
-                                role: 'user',
-                                content: `Search the web for: ${platform.query}. Find the most relevant profile or presence for this person on ${platform.name}. Return ONLY a JSON object with this exact structure: {"found": true/false, "url": "the URL or null", "snippet": "brief description or null"}. No other text.`
-                            }],
-                            tools: [{
-                                type: "web_search_20250305",
-                                name: "web_search"
-                            }]
-                        })
-                    });
+            <div class="kpi">
+              <div class="box"><div class="k">Public signal strength</div><div class="v" id="sig">—</div></div>
+              <div class="box"><div class="k">Consistency score</div><div class="v" id="con">—</div></div>
+            </div>
 
-                    const data = await response.json();
-                    
-                    // Extract text from response
-                    let resultText = '';
-                    if (data.content) {
-                        for (let item of data.content) {
-                            if (item.type === 'text') {
-                                resultText += item.text;
-                            }
-                        }
-                    }
+            <div class="section" id="summary"></div>
 
-                    // Try to parse JSON from the response
-                    let parsedResult;
-                    try {
-                        const jsonMatch = resultText.match(/\{[\s\S]*\}/);
-                        if (jsonMatch) {
-                            parsedResult = JSON.parse(jsonMatch[0]);
-                        } else {
-                            parsedResult = { found: false, url: null, snippet: null };
-                        }
-                    } catch (e) {
-                        parsedResult = { found: false, url: null, snippet: null };
-                    }
+            <div class="section links" id="searchLinks"></div>
 
-                    results.push({
-                        platform: platform.name,
-                        ...parsedResult
-                    });
+            <div class="danger">
+              <b>Demo note:</b> This report is simulated. A real “fetch everything” tool needs official APIs + your permission.
+            </div>
 
-                } catch (error) {
-                    results.push({
-                        platform: platform.name,
-                        found: false,
-                        url: null,
-                        snippet: 'Search unavailable'
-                    });
-                }
-            }
+            <div class="actions" style="margin-top:14px;">
+              <button class="btn2" type="button" id="copyBtn">Copy report</button>
+              <button class="btn" type="button" id="againBtn">Scan again</button>
+            </div>
+          </div>
+        </div>
 
-            // Display results
-            displayResults(results, userName);
-        }
+      </div>
+    </div>
+  </div>
 
-        function displayResults(results, userName) {
-            document.getElementById('scannerAnimation').style.display = 'none';
-            document.getElementById('results').style.display = 'block';
-            document.querySelector('.scan-btn').disabled = false;
+  <div class="toast" id="toast">Copied ✅</div>
 
-            const container = document.getElementById('resultsContainer');
-            container.innerHTML = '';
+  <script>
+    // ---------- Helpers ----------
+    const $ = (id)=>document.getElementById(id);
+    const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+    const rand = (min,max)=>Math.floor(Math.random()*(max-min+1))+min;
 
-            const foundResults = results.filter(r => r.found);
+    // ---------- Elements ----------
+    const form = $("form");
+    const startBtn = $("startBtn");
+    const resetBtn = $("resetBtn");
+    const statusEl = $("status");
+    const hudLabel = $("hudLabel");
+    const log = $("log");
 
-            if (foundResults.length === 0) {
-                container.innerHTML = `
-                    <div class="no-results">
-                        No public profiles found for "${userName}". This could mean:
-                        <br>• Your privacy settings are strong 🔒
-                        <br>• You use a different name online
-                        <br>• Try adding location or profession
-                    </div>
-                `;
-                return;
-            }
+    const camBox = $("cam");
+    const video = $("video");
+    const canvas = $("canvas");
+    const faceFrame = $("faceFrame");
+    const scanLine = $("scanLine");
 
-            foundResults.forEach(result => {
-                const card = document.createElement('div');
-                card.className = 'result-card';
-                card.innerHTML = `
-                    <div class="platform-name">📍 ${result.platform}</div>
-                    <div class="result-content">
-                        ${result.snippet || 'Profile found'}
-                        ${result.url ? `<br><br><a href="${result.url}" target="_blank" class="result-link">View Profile →</a>` : ''}
-                    </div>
-                `;
-                container.appendChild(card);
-            });
+    const previewRow = $("previewRow");
+    const shot = $("shot");
 
-            // Add summary
-            const summary = document.createElement('div');
-            summary.className = 'result-card';
-            summary.style.background = '#e8f4f8';
-            summary.innerHTML = `
-                <div class="platform-name">📈 Summary</div>
-                <div class="result-content">
-                    Found ${foundResults.length} public profile(s) for "${userName}"
-                </div>
-            `;
-            container.appendChild(summary);
-        }
-    </script>
+    const result = $("result");
+    const rt = $("rt");
+    const chipsEl = $("chips");
+    const sig = $("sig");
+    const con = $("con");
+    const summary = $("summary");
+    const searchLinks = $("searchLinks");
+
+    const copyBtn = $("copyBtn");
+    const againBtn = $("againBtn");
+    const toast = $("toast");
+
+    // ---------- State ----------
+    let stream = null;
+    let capturedDataUrl = null;
+    let cachedInput = null;
+
+    function addLog(line){
+      const div = document.createElement("div");
+      div.innerHTML = `<b>&gt;</b> ${line}`;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.style.display = "block";
+      clearTimeout(showToast.t);
+      showToast.t = setTimeout(()=>toast.style.display="none", 1200);
+    }
+
+    function stopCamera(){
+      if(stream){
+        stream.getTracks().forEach(t=>t.stop());
+        stream = null;
+      }
+      video.srcObject = null;
+      video.style.display = "none";
+      faceFrame.style.display = "none";
+      scanLine.style.display = "none";
+    }
+
+    function resetUI(){
+      stopCamera();
+      capturedDataUrl = null;
+      cachedInput = null;
+
+      statusEl.textContent = "Idle";
+      hudLabel.textContent = "Waiting…";
+
+      previewRow.style.display = "none";
+      result.style.display = "none";
+
+      chipsEl.innerHTML = "";
+      summary.innerHTML = "";
+      searchLinks.innerHTML = "";
+
+      startBtn.disabled = false;
+      resetBtn.disabled = false;
+
+      addLog("system: reset");
+    }
+
+    async function startCamera(){
+      addLog("camera: requesting permission…");
+      statusEl.textContent = "Camera";
+      hudLabel.textContent = "Allow camera access…";
+
+      try{
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
+          audio: false
+        });
+        video.srcObject = stream;
+        video.style.display = "block";
+
+        // Wait video ready
+        await new Promise(resolve=>{
+          video.onloadedmetadata = ()=>resolve();
+        });
+
+        faceFrame.style.display = "block";
+        hudLabel.textContent = "Center your face in the frame";
+        addLog("camera: stream active ✅");
+      }catch(err){
+        addLog("camera: blocked ❌");
+        alert("Camera access denied or not available. Open this page via HTTPS (GitHub Pages / Netlify) and allow camera permission.");
+        throw err;
+      }
+    }
+
+    function captureSelfie(){
+      // Ensure video is ready
+      if(!video.videoWidth){
+        throw new Error("Video not ready");
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      const ctx = canvas.getContext("2d");
+
+      // Flip back to normal (since video is mirrored)
+      ctx.save();
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+      ctx.restore();
+
+      capturedDataUrl = canvas.toDataURL("image/jpeg", 0.9);
+      shot.src = capturedDataUrl;
+      previewRow.style.display = "flex";
+      addLog("selfie: captured ✅ (local only)");
+    }
+
+    function buildSearchLinks(name, location){
+      const q = encodeURIComponent([name, location].filter(Boolean).join(" "));
+      const make = (label, url)=>`<div>• <a target="_blank" rel="noopener" href="${url}">${label}</a></div>`;
+
+      return `
+        <div style="margin-top:8px; color:rgba(255,255,255,.86); font-weight:700;">Open public searches:</div>
+        <div style="margin-top:8px; line-height:1.9;">
+          ${make("Google (general)", `https://www.google.com/search?q=${q}`)}
+          ${make("LinkedIn profiles", `https://www.google.com/search?q=${q}%20site%3Alinkedin.com%2Fin`)}
+          ${make("Facebook", `https://www.google.com/search?q=${q}%20site%3Afacebook.com`)}
+          ${make("Instagram", `https://www.google.com/search?q=${q}%20site%3Ainstagram.com`)}
+          ${make("X / Twitter", `https://www.google.com/search?q=${q}%20site%3Ax.com%20OR%20site%3Atwitter.com`)}
+          ${make("GitHub", `https://www.google.com/search?q=${q}%20site%3Agithub.com`)}
+        </div>
+        <div style="margin-top:10px; color:rgba(255,255,255,.62); font-size:12px;">
+          These open searches in a new tab. This page does not scrape or collect private data.
+        </div>
+      `;
+    }
+
+    function buildReport(input){
+      const { fullName, location, vibe, line } = input;
+
+      const signal = rand(62, 95);
+      const consistency = rand(55, 92) + (vibe === "Founder" ? 3 : 0);
+
+      const traitsPool = {
+        "Founder": ["Operator mindset", "Decision speed", "High standards", "Vision driver"],
+        "Freelancer": ["Client psychology", "Adaptable operator", "Results focus", "Independent drive"],
+        "Creator": ["Taste advantage", "Storytelling instinct", "Creative momentum", "Brand sense"],
+        "Student": ["Fast learner", "Curious builder", "High potential", "Rapid iteration"],
+        "Builder": ["Systems mindset", "Execution bias", "Structured thinker", "Shipping attitude"],
+        "Chaotic (good)": ["Wildcard energy", "Momentum creator", "Big swings", "Unpredictable edge"]
+      };
+
+      const base = ["Confidence signal", "Social calibration", "Pattern reader", "Low-noise focus", "Bold presence", "Execution energy"];
+      const chips = [...new Set([...(traitsPool[vibe]||[]).slice(0,3), base[rand(0,base.length-1)], base[rand(0,base.length-1)]])].slice(0,6);
+
+      const paragraphs = [
+        `<b>${fullName}</b> — scan complete. Your vibe reads as <b>${vibe}</b>.`,
+        `<b>Core line:</b> “${line}”`,
+        `<b>Public impression (simulated):</b> You come across as <b>${signal>80?"high-signal":"low-key but sharp"}</b> with a <b>${consistency>75?"consistent":"mixed"}</b> narrative.`,
+        `<b>Reality check:</b> The only real thing here is the selfie capture (stored locally). Everything else is a simulation for fun.`
+      ].join("<br/>");
+
+      return { chips, signal, consistency: Math.min(95, consistency), paragraphs };
+    }
+
+    async function runScanFlow(){
+      statusEl.textContent = "Scanning";
+      hudLabel.textContent = "Face scan in progress…";
+      scanLine.style.display = "block";
+      addLog("scan: biometric alignment…");
+      await sleep(900);
+
+      captureSelfie();
+
+      addLog("scan: feature map generated ✅");
+      hudLabel.textContent = "Locking identity snapshot…";
+      await sleep(800);
+
+      stopCamera();
+
+      // Dramatic “platform scan” logs (simulated)
+      statusEl.textContent = "Search";
+      const steps = [
+        "index: building query graph…",
+        "crawl: public sources (simulated)…",
+        "match: profile candidates…",
+        "rank: relevance scoring…",
+        "compile: footprint summary…",
+        "finalize: report ready ✅"
+      ];
+
+      for(const s of steps){
+        hudLabel.textContent = s.replace("✅","").trim();
+        addLog(s);
+        await sleep(520);
+      }
+
+      // Show results
+      const rep = buildReport(cachedInput);
+      rt.textContent = `📊 ${cachedInput.fullName}'s Footprint Report`;
+      chipsEl.innerHTML = rep.chips.map(t=>`<span class="chip">${t}</span>`).join("");
+      sig.textContent = `${rep.signal}%`;
+      con.textContent = `${rep.consistency}%`;
+      summary.innerHTML = rep.paragraphs;
+      searchLinks.innerHTML = buildSearchLinks(cachedInput.fullName, cachedInput.location);
+
+      result.style.display = "block";
+      statusEl.textContent = "Complete";
+      hudLabel.textContent = "Done ✅";
+    }
+
+    // ---------- Events ----------
+    document.getElementById("form").addEventListener("submit", async (e)=>{
+      e.preventDefault();
+
+      const fullName = $("fullName").value.trim();
+      const location = $("location").value.trim();
+      const vibe = $("vibe").value;
+      const line = $("line").value.trim();
+
+      if(!fullName || !vibe || !line){
+        alert("Please fill name, vibe, and one-line.");
+        return;
+      }
+
+      cachedInput = { fullName, location, vibe, line };
+
+      startBtn.disabled = true;
+      resetBtn.disabled = true;
+      result.style.display = "none";
+      previewRow.style.display = "none";
+
+      addLog(`target: ${fullName}`);
+      addLog(`mode: digital_footprint_scan (demo)`);
+      addLog(`location: ${location || "not provided"}`);
+
+      // Camera first
+      try{
+        await startCamera();
+      }catch{
+        startBtn.disabled = false;
+        resetBtn.disabled = false;
+        return;
+      }
+
+      // Wait a moment to let them position
+      await sleep(600);
+      await runScanFlow();
+
+      startBtn.disabled = false;
+      resetBtn.disabled = false;
+    });
+
+    resetBtn.addEventListener("click", ()=>{
+      document.getElementById("form").reset();
+      resetUI();
+    });
+
+    againBtn.addEventListener("click", ()=>{
+      resetUI();
+      // keep form values
+      cachedInput = {
+        fullName: $("fullName").value.trim(),
+        location: $("location").value.trim(),
+        vibe: $("vibe").value,
+        line: $("line").value.trim()
+      };
+      addLog("system: ready for next scan");
+    });
+
+    copyBtn.addEventListener("click", async ()=>{
+      const chipText = Array.from(chipsEl.querySelectorAll(".chip")).map(x=>`- ${x.textContent}`).join("\n");
+      const text = [
+        rt.textContent,
+        "",
+        `Signal strength: ${sig.textContent}`,
+        `Consistency score: ${con.textContent}`,
+        "",
+        chipText,
+        "",
+        summary.textContent.trim()
+      ].join("\n");
+
+      try{
+        await navigator.clipboard.writeText(text);
+        showToast("Copied ✅");
+      }catch{
+        showToast("Copy failed");
+      }
+    });
+
+    // Init
+    resetUI();
+  </script>
 </body>
 </html>
