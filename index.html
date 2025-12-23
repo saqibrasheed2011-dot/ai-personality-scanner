@@ -4,11 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Digital Footprint Scanner</title>
-  <meta name="description" content="Digital Footprint Scanner — camera scan + simulated footprint report." />
   <style>
     :root{
       --bg:#070A12;
-      --panel:rgba(255,255,255,.05);
       --stroke:rgba(255,255,255,.12);
       --text:rgba(255,255,255,.92);
       --muted:rgba(255,255,255,.62);
@@ -116,9 +114,6 @@
       color: rgba(255,255,255,.78);
       font-size:12px; line-height:1.5;
     }
-    .notice b{color:rgba(255,255,255,.92)}
-    .notice .tiny{color:rgba(255,255,255,.6)}
-
     form{padding:16px 18px 20px}
     label{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px}
     input,select{
@@ -134,7 +129,6 @@
     input:focus,select:focus{border-color:rgba(124,92,255,.55); box-shadow:0 0 0 4px rgba(124,92,255,.18)}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     @media(max-width:540px){.row{grid-template-columns:1fr}}
-
     .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
     .btn{
       border:none;
@@ -159,8 +153,9 @@
     .btn:disabled,.btn2:disabled{opacity:.6;cursor:not-allowed}
     .note{font-size:12px;color:var(--muted2);line-height:1.5}
 
-    /* Right panel (scanner) */
-    .scanner{min-height:620px; position:relative;}
+    /* RIGHT PANEL: make it scrollable */
+    .scanner{height: 720px;}
+    @media(max-width:900px){.scanner{height:auto}}
     .scanTop{
       padding:14px 14px;
       border-bottom:1px solid var(--stroke);
@@ -168,14 +163,22 @@
       display:flex; align-items:center; justify-content:space-between;
       font-size:12px; color:var(--muted);
     }
-    .scanBody{padding:16px; height: calc(620px - 48px); display:flex; flex-direction:column; gap:12px;}
+    .scanBody{
+      padding:16px;
+      height: calc(720px - 48px);
+      overflow:auto; /* ✅ this fixes cut-off content */
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    @media(max-width:900px){
+      .scanBody{height:auto; overflow:visible}
+    }
+
     .cam{
       border:1px solid var(--stroke);
       border-radius:18px;
-      background:
-        radial-gradient(600px 240px at 50% 20%, rgba(53,208,255,.10), transparent 60%),
-        radial-gradient(600px 240px at 50% 85%, rgba(124,92,255,.12), transparent 60%),
-        rgba(0,0,0,.22);
+      background: rgba(0,0,0,.22);
       position:relative;
       overflow:hidden;
       height:320px;
@@ -187,7 +190,7 @@
       width:100%;
       height:100%;
       object-fit:cover;
-      transform: scaleX(-1); /* mirror selfie */
+      transform: scaleX(-1);
       display:none;
     }
     canvas{display:none}
@@ -255,8 +258,7 @@
       object-fit:cover;
       box-shadow: 0 12px 30px rgba(0,0,0,.28);
     }
-    .ptext{font-size:12px;color:var(--muted);line-height:1.5}
-    .ptext b{color:rgba(255,255,255,.9)}
+
     .result{display:none}
     .report{
       border:1px solid var(--stroke);
@@ -285,20 +287,37 @@
     .box .k{font-size:12px;color:var(--muted2)}
     .box .v{font-size:14px;color:rgba(255,255,255,.88);margin-top:4px}
     .section{margin-top:10px;color:rgba(255,255,255,.82);font-size:13px;line-height:1.6}
-    .links a{
-      color:rgba(255,255,255,.9);
-      text-decoration:none;
-      border-bottom:1px solid rgba(255,255,255,.22);
+
+    .gridBtns{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:10px;
     }
-    .links a:hover{border-bottom-color:rgba(255,255,255,.6)}
-    .danger{
-      margin-top:12px;
-      border:1px solid rgba(255,107,107,.22);
-      background: rgba(255,107,107,.08);
+    @media(max-width:540px){.gridBtns{grid-template-columns:1fr}}
+    .linkBtn{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding:12px 12px;
       border-radius:14px;
-      padding:10px 12px;
-      color: rgba(255,255,255,.78);
-      font-size:12px; line-height:1.5;
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.9);
+      text-decoration:none;
+      font-size:13px;
+      font-weight:700;
+    }
+    .linkBtn:hover{border-color:rgba(255,255,255,.22)}
+    .badge{
+      font-size:11px;
+      color:rgba(255,255,255,.72);
+      border:1px solid rgba(255,255,255,.16);
+      padding:4px 8px;
+      border-radius:999px;
+      background: rgba(255,255,255,.04);
+      white-space:nowrap;
     }
 
     .toast{
@@ -323,20 +342,20 @@
           <div class="logo"></div>
           <div>
             <h1>Digital Footprint Scanner</h1>
-            <p class="sub">Camera scan + simulated “public presence” report</p>
+            <p class="sub">Face scan + “public presence” report (demo)</p>
           </div>
         </div>
         <div class="pill"><span class="dot"></span> Scanner Online</div>
       </div>
 
       <div class="hero">
-        <h2>Scan your face. Generate your “public footprint” report.</h2>
+        <h2>Scan your face. Generate your footprint report.</h2>
         <p>
-          This demo captures a selfie <b>locally in your browser</b> and generates a simulated footprint report.
-          It does <b>not</b> scrape private data from LinkedIn/Facebook/Google.
+          This demo captures a selfie <b>locally</b> in your browser and generates a simulated footprint report.
+          It does <b>not</b> fetch private content from LinkedIn/Facebook/Google.
         </p>
         <div class="notice">
-          <b>Works only on HTTPS</b> (GitHub Pages / Netlify). Camera won’t work on <span class="tiny">file://</span>.
+          <b>Camera requires HTTPS</b> (GitHub Pages / Netlify). It won’t work on <code>file://</code>.
         </div>
       </div>
 
@@ -344,11 +363,11 @@
         <div class="row">
           <div>
             <label for="fullName">Full name</label>
-            <input id="fullName" placeholder="e.g., Muhammad Ahmed" required />
+            <input id="fullName" placeholder="e.g., Saqib Khan" required />
           </div>
           <div>
             <label for="location">Location (optional)</label>
-            <input id="location" placeholder="e.g., Karachi, PK" />
+            <input id="location" placeholder="e.g., Lahore, PK" />
           </div>
         </div>
 
@@ -364,12 +383,12 @@
         </select>
 
         <label for="line">One line about you</label>
-        <input id="line" placeholder="e.g., Calm until it’s time to win." required />
+        <input id="line" placeholder="e.g., Sales guy with big ambition." required />
 
         <div class="actions">
           <button class="btn" type="submit" id="startBtn">Start Scan</button>
           <button class="btn2" type="button" id="resetBtn">Reset</button>
-          <div class="note">Tip: Use your real name for a more “realistic” report.</div>
+          <div class="note">This is a safe demo: it opens public searches instead of scraping.</div>
         </div>
       </form>
     </div>
@@ -381,381 +400,12 @@
         <span id="status">Idle</span>
       </div>
 
-      <div class="scanBody">
-        <!-- Camera box -->
+      <div class="scanBody" id="scanBody">
         <div class="cam" id="cam">
           <video id="video" autoplay playsinline></video>
           <canvas id="canvas"></canvas>
-
           <div class="faceFrame" id="faceFrame"></div>
           <div class="scanLine" id="scanLine"></div>
 
           <div class="hud">
-            <span id="hudLabel">Waiting…</span>
-            <div class="bar"><i></i></div>
-          </div>
-        </div>
-
-        <!-- Selfie preview -->
-        <div class="previewRow" id="previewRow">
-          <img id="shot" class="shot" alt="Captured selfie preview"/>
-          <div class="ptext">
-            <b>Identity snapshot captured.</b><br/>
-            Stored locally in this browser session only.
-          </div>
-        </div>
-
-        <!-- Logs -->
-        <div class="log" id="log">
-          <div><b>&gt;</b> system: ready</div>
-          <div><b>&gt;</b> note: HTTPS required for camera access</div>
-        </div>
-
-        <!-- Results -->
-        <div class="result" id="result">
-          <div class="report">
-            <h3 class="title" id="rt">Report</h3>
-            <div class="chips" id="chips"></div>
-
-            <div class="kpi">
-              <div class="box"><div class="k">Public signal strength</div><div class="v" id="sig">—</div></div>
-              <div class="box"><div class="k">Consistency score</div><div class="v" id="con">—</div></div>
-            </div>
-
-            <div class="section" id="summary"></div>
-
-            <div class="section links" id="searchLinks"></div>
-
-            <div class="danger">
-              <b>Demo note:</b> This report is simulated. A real “fetch everything” tool needs official APIs + your permission.
-            </div>
-
-            <div class="actions" style="margin-top:14px;">
-              <button class="btn2" type="button" id="copyBtn">Copy report</button>
-              <button class="btn" type="button" id="againBtn">Scan again</button>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <div class="toast" id="toast">Copied ✅</div>
-
-  <script>
-    // ---------- Helpers ----------
-    const $ = (id)=>document.getElementById(id);
-    const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
-    const rand = (min,max)=>Math.floor(Math.random()*(max-min+1))+min;
-
-    // ---------- Elements ----------
-    const form = $("form");
-    const startBtn = $("startBtn");
-    const resetBtn = $("resetBtn");
-    const statusEl = $("status");
-    const hudLabel = $("hudLabel");
-    const log = $("log");
-
-    const camBox = $("cam");
-    const video = $("video");
-    const canvas = $("canvas");
-    const faceFrame = $("faceFrame");
-    const scanLine = $("scanLine");
-
-    const previewRow = $("previewRow");
-    const shot = $("shot");
-
-    const result = $("result");
-    const rt = $("rt");
-    const chipsEl = $("chips");
-    const sig = $("sig");
-    const con = $("con");
-    const summary = $("summary");
-    const searchLinks = $("searchLinks");
-
-    const copyBtn = $("copyBtn");
-    const againBtn = $("againBtn");
-    const toast = $("toast");
-
-    // ---------- State ----------
-    let stream = null;
-    let capturedDataUrl = null;
-    let cachedInput = null;
-
-    function addLog(line){
-      const div = document.createElement("div");
-      div.innerHTML = `<b>&gt;</b> ${line}`;
-      log.appendChild(div);
-      log.scrollTop = log.scrollHeight;
-    }
-
-    function showToast(msg){
-      toast.textContent = msg;
-      toast.style.display = "block";
-      clearTimeout(showToast.t);
-      showToast.t = setTimeout(()=>toast.style.display="none", 1200);
-    }
-
-    function stopCamera(){
-      if(stream){
-        stream.getTracks().forEach(t=>t.stop());
-        stream = null;
-      }
-      video.srcObject = null;
-      video.style.display = "none";
-      faceFrame.style.display = "none";
-      scanLine.style.display = "none";
-    }
-
-    function resetUI(){
-      stopCamera();
-      capturedDataUrl = null;
-      cachedInput = null;
-
-      statusEl.textContent = "Idle";
-      hudLabel.textContent = "Waiting…";
-
-      previewRow.style.display = "none";
-      result.style.display = "none";
-
-      chipsEl.innerHTML = "";
-      summary.innerHTML = "";
-      searchLinks.innerHTML = "";
-
-      startBtn.disabled = false;
-      resetBtn.disabled = false;
-
-      addLog("system: reset");
-    }
-
-    async function startCamera(){
-      addLog("camera: requesting permission…");
-      statusEl.textContent = "Camera";
-      hudLabel.textContent = "Allow camera access…";
-
-      try{
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user" },
-          audio: false
-        });
-        video.srcObject = stream;
-        video.style.display = "block";
-
-        // Wait video ready
-        await new Promise(resolve=>{
-          video.onloadedmetadata = ()=>resolve();
-        });
-
-        faceFrame.style.display = "block";
-        hudLabel.textContent = "Center your face in the frame";
-        addLog("camera: stream active ✅");
-      }catch(err){
-        addLog("camera: blocked ❌");
-        alert("Camera access denied or not available. Open this page via HTTPS (GitHub Pages / Netlify) and allow camera permission.");
-        throw err;
-      }
-    }
-
-    function captureSelfie(){
-      // Ensure video is ready
-      if(!video.videoWidth){
-        throw new Error("Video not ready");
-      }
-
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
-      const ctx = canvas.getContext("2d");
-
-      // Flip back to normal (since video is mirrored)
-      ctx.save();
-      ctx.scale(-1, 1);
-      ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-      ctx.restore();
-
-      capturedDataUrl = canvas.toDataURL("image/jpeg", 0.9);
-      shot.src = capturedDataUrl;
-      previewRow.style.display = "flex";
-      addLog("selfie: captured ✅ (local only)");
-    }
-
-    function buildSearchLinks(name, location){
-      const q = encodeURIComponent([name, location].filter(Boolean).join(" "));
-      const make = (label, url)=>`<div>• <a target="_blank" rel="noopener" href="${url}">${label}</a></div>`;
-
-      return `
-        <div style="margin-top:8px; color:rgba(255,255,255,.86); font-weight:700;">Open public searches:</div>
-        <div style="margin-top:8px; line-height:1.9;">
-          ${make("Google (general)", `https://www.google.com/search?q=${q}`)}
-          ${make("LinkedIn profiles", `https://www.google.com/search?q=${q}%20site%3Alinkedin.com%2Fin`)}
-          ${make("Facebook", `https://www.google.com/search?q=${q}%20site%3Afacebook.com`)}
-          ${make("Instagram", `https://www.google.com/search?q=${q}%20site%3Ainstagram.com`)}
-          ${make("X / Twitter", `https://www.google.com/search?q=${q}%20site%3Ax.com%20OR%20site%3Atwitter.com`)}
-          ${make("GitHub", `https://www.google.com/search?q=${q}%20site%3Agithub.com`)}
-        </div>
-        <div style="margin-top:10px; color:rgba(255,255,255,.62); font-size:12px;">
-          These open searches in a new tab. This page does not scrape or collect private data.
-        </div>
-      `;
-    }
-
-    function buildReport(input){
-      const { fullName, location, vibe, line } = input;
-
-      const signal = rand(62, 95);
-      const consistency = rand(55, 92) + (vibe === "Founder" ? 3 : 0);
-
-      const traitsPool = {
-        "Founder": ["Operator mindset", "Decision speed", "High standards", "Vision driver"],
-        "Freelancer": ["Client psychology", "Adaptable operator", "Results focus", "Independent drive"],
-        "Creator": ["Taste advantage", "Storytelling instinct", "Creative momentum", "Brand sense"],
-        "Student": ["Fast learner", "Curious builder", "High potential", "Rapid iteration"],
-        "Builder": ["Systems mindset", "Execution bias", "Structured thinker", "Shipping attitude"],
-        "Chaotic (good)": ["Wildcard energy", "Momentum creator", "Big swings", "Unpredictable edge"]
-      };
-
-      const base = ["Confidence signal", "Social calibration", "Pattern reader", "Low-noise focus", "Bold presence", "Execution energy"];
-      const chips = [...new Set([...(traitsPool[vibe]||[]).slice(0,3), base[rand(0,base.length-1)], base[rand(0,base.length-1)]])].slice(0,6);
-
-      const paragraphs = [
-        `<b>${fullName}</b> — scan complete. Your vibe reads as <b>${vibe}</b>.`,
-        `<b>Core line:</b> “${line}”`,
-        `<b>Public impression (simulated):</b> You come across as <b>${signal>80?"high-signal":"low-key but sharp"}</b> with a <b>${consistency>75?"consistent":"mixed"}</b> narrative.`,
-        `<b>Reality check:</b> The only real thing here is the selfie capture (stored locally). Everything else is a simulation for fun.`
-      ].join("<br/>");
-
-      return { chips, signal, consistency: Math.min(95, consistency), paragraphs };
-    }
-
-    async function runScanFlow(){
-      statusEl.textContent = "Scanning";
-      hudLabel.textContent = "Face scan in progress…";
-      scanLine.style.display = "block";
-      addLog("scan: biometric alignment…");
-      await sleep(900);
-
-      captureSelfie();
-
-      addLog("scan: feature map generated ✅");
-      hudLabel.textContent = "Locking identity snapshot…";
-      await sleep(800);
-
-      stopCamera();
-
-      // Dramatic “platform scan” logs (simulated)
-      statusEl.textContent = "Search";
-      const steps = [
-        "index: building query graph…",
-        "crawl: public sources (simulated)…",
-        "match: profile candidates…",
-        "rank: relevance scoring…",
-        "compile: footprint summary…",
-        "finalize: report ready ✅"
-      ];
-
-      for(const s of steps){
-        hudLabel.textContent = s.replace("✅","").trim();
-        addLog(s);
-        await sleep(520);
-      }
-
-      // Show results
-      const rep = buildReport(cachedInput);
-      rt.textContent = `📊 ${cachedInput.fullName}'s Footprint Report`;
-      chipsEl.innerHTML = rep.chips.map(t=>`<span class="chip">${t}</span>`).join("");
-      sig.textContent = `${rep.signal}%`;
-      con.textContent = `${rep.consistency}%`;
-      summary.innerHTML = rep.paragraphs;
-      searchLinks.innerHTML = buildSearchLinks(cachedInput.fullName, cachedInput.location);
-
-      result.style.display = "block";
-      statusEl.textContent = "Complete";
-      hudLabel.textContent = "Done ✅";
-    }
-
-    // ---------- Events ----------
-    document.getElementById("form").addEventListener("submit", async (e)=>{
-      e.preventDefault();
-
-      const fullName = $("fullName").value.trim();
-      const location = $("location").value.trim();
-      const vibe = $("vibe").value;
-      const line = $("line").value.trim();
-
-      if(!fullName || !vibe || !line){
-        alert("Please fill name, vibe, and one-line.");
-        return;
-      }
-
-      cachedInput = { fullName, location, vibe, line };
-
-      startBtn.disabled = true;
-      resetBtn.disabled = true;
-      result.style.display = "none";
-      previewRow.style.display = "none";
-
-      addLog(`target: ${fullName}`);
-      addLog(`mode: digital_footprint_scan (demo)`);
-      addLog(`location: ${location || "not provided"}`);
-
-      // Camera first
-      try{
-        await startCamera();
-      }catch{
-        startBtn.disabled = false;
-        resetBtn.disabled = false;
-        return;
-      }
-
-      // Wait a moment to let them position
-      await sleep(600);
-      await runScanFlow();
-
-      startBtn.disabled = false;
-      resetBtn.disabled = false;
-    });
-
-    resetBtn.addEventListener("click", ()=>{
-      document.getElementById("form").reset();
-      resetUI();
-    });
-
-    againBtn.addEventListener("click", ()=>{
-      resetUI();
-      // keep form values
-      cachedInput = {
-        fullName: $("fullName").value.trim(),
-        location: $("location").value.trim(),
-        vibe: $("vibe").value,
-        line: $("line").value.trim()
-      };
-      addLog("system: ready for next scan");
-    });
-
-    copyBtn.addEventListener("click", async ()=>{
-      const chipText = Array.from(chipsEl.querySelectorAll(".chip")).map(x=>`- ${x.textContent}`).join("\n");
-      const text = [
-        rt.textContent,
-        "",
-        `Signal strength: ${sig.textContent}`,
-        `Consistency score: ${con.textContent}`,
-        "",
-        chipText,
-        "",
-        summary.textContent.trim()
-      ].join("\n");
-
-      try{
-        await navigator.clipboard.writeText(text);
-        showToast("Copied ✅");
-      }catch{
-        showToast("Copy failed");
-      }
-    });
-
-    // Init
-    resetUI();
-  </script>
-</body>
-</html>
+            <span id="hudLabel">Wait
